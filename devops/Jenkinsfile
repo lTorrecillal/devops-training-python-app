@@ -1,5 +1,4 @@
 pipeline {
-
   agent any
 
   environment {
@@ -9,15 +8,17 @@ pipeline {
   stages {
 
     stage('CI - Unit tests') {
+      // Usamos tu Dockerfile para que el entorno sea idéntico al de producción
       agent {
-        docker {
-          image 'python:3.6-slim'
+        dockerfile {
+          filename 'devops/Dockerfile'
+          dir '.'
         }
       }
       steps {
         sh '''
           python --version
-          pip install -r requirements.txt
+          pip install --upgrade pip setuptools wheel
           pytest
         '''
       }
@@ -26,6 +27,7 @@ pipeline {
     stage('CI - Docker build') {
       steps {
         sh '''
+          # Construye la imagen de la app usando el Dockerfile
           docker build -t ${APP_IMAGE} -f devops/Dockerfile .
         '''
       }
@@ -69,7 +71,7 @@ pipeline {
       }
     }
 
-  }  // ← cierre de stages
+  } // fin de stages
 
   post {
     always {
@@ -79,5 +81,5 @@ pipeline {
     }
   }
 
-}  // ← cierre de pipeline
+} // fin de pipeline
 
