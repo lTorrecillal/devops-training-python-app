@@ -8,10 +8,6 @@ pipeline {
 
   stages {
 
-    /* =========================
-       CI
-       ========================= */
-
     stage('CI - Unit tests') {
       agent {
         docker {
@@ -35,10 +31,6 @@ pipeline {
       }
     }
 
-    /* =========================
-       CD (solo ramas principales)
-       ========================= */
-
     stage('CD - Deploy (docker compose)') {
       when {
         anyOf {
@@ -53,33 +45,31 @@ pipeline {
       }
     }
 
-stage('CD - E2E test') {
-  when {
-    anyOf {
-      branch 'develop'
-      branch 'master'
+    stage('CD - E2E test') {
+      when {
+        anyOf {
+          branch 'develop'
+          branch 'master'
+        }
+      }
+      steps {
+        sh '''
+          echo "Esperando a que la app esté lista..."
+          for i in {1..15}; do
+            if curl -s http://localhost:5001 > /dev/null; then
+              echo "App lista!"
+              exit 0
+            fi
+            echo "Esperando..."
+            sleep 2
+          done
+          echo "La app no respondió"
+          exit 1
+        '''
+      }
     }
-  }
-  steps {
-    sh '''
-      echo "Esperando a que la app esté lista..."
-      for i in {1..15}; do
-        if curl -s http://localhost:5001 > /dev/null; then
-          echo "App lista!"
-          exit 0
-        fi
-        echo "Esperando..."
-        sleep 2
-      done
-      echo "La app no respondió"
-      exit 1
-    '''
-  }
-}
 
-  /* =========================
-     LIMPIEZA
-     ========================= */
+  }  // ← cierre de stages
 
   post {
     always {
@@ -88,5 +78,6 @@ stage('CD - E2E test') {
       '''
     }
   }
- }
-}
+
+}  // ← cierre de pipeline
+
