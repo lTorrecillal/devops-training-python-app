@@ -1,0 +1,28 @@
+version: "3.9"
+services:
+  docker:
+    image: docker:dind
+    privileged: true
+    ports:
+      - "2375:2375"
+    environment:
+      DOCKER_TLS_CERTDIR: ""
+    volumes:
+      - docker-data:/var/lib/docker
+
+  jenkins:
+    image: jenkins/jenkins:lts-jdk21
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    environment:
+      DOCKER_HOST: tcp://docker:2375
+    volumes:
+      - jenkins_home:/var/jenkins_home
+    depends_on:
+      - docker
+
+volumes:
+  jenkins_home:
+  docker-data:
+
