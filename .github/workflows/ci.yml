@@ -1,10 +1,10 @@
-name: CI/CD  Ejercicio 3 Python
+name: CI Ejercicio 3
 
 on:
   push:
-    branches: ['**']
+    branches: ['**']        # CI en cualquier rama
   pull_request:
-    branches: [develop, master]
+    branches: [develop, master]  # PR solo a develop/master
   workflow_dispatch:
     inputs:
       RUN_CD:
@@ -12,38 +12,30 @@ on:
         type: boolean
         default: false
 
-# Variables globales del workflow
+# Variables de entorno a nivel workflow
 env:
-  IMAGE_NAME: "contrerasadr/devops-training-python-app:0.0.1"
-  APP_URL: "http://localhost:5001/"
+  IMAGE_NAME: contrerasadr/devops-training-python-app:0.0.1
+  APP_URL: http://localhost:5001/
 
 jobs:
   ci:
     name: CI Job
     runs-on: ubuntu-latest
-    # Sobrescribimos APP_URL a nivel de job
+
+    # Variables de entorno a nivel job (sobrescribe workflow)
     env:
-      APP_URL: "http://localhost:5002/"
+      APP_URL: http://localhost:5002/
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Info del repo y branch
+      - name: Info
         run: |
           echo "Repo: $GITHUB_REPOSITORY"
-          echo "Ref:  $GITHUB_REF"
           echo "Branch: $GITHUB_REF_NAME"
-          echo "SHA:    $GITHUB_SHA"
+          echo "SHA: $GITHUB_SHA"
           echo "Runner OS: $RUNNER_OS"
-          echo "Runner name: $RUNNER_NAME"
-
-      - name: Mostrar variables globales y job
-        run: |
-          echo "IMAGE_NAME = ${{ env.IMAGE_NAME }}"
-          echo "APP_URL (job) = ${{ env.APP_URL }}"
-
-      - name: Sobrescribir variable solo en este step
-        env:
-          APP_URL: "http://localhost:5003/"
-        run: |
-          echo "APP_URL (step) = $APP_URL"
+          echo "Runner: $RUNNER_NAME"
+          echo "IMAGE_NAME = $IMAGE_NAME"
+          echo "APP_URL (job) = $APP_URL"
