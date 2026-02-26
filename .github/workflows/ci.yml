@@ -1,41 +1,46 @@
-name: CI Ejercicio 3
+name: CI - Python Ejercicio 4
 
 on:
   push:
-    branches: ['**']        # CI en cualquier rama
+    branches: ['**']
   pull_request:
-    branches: [develop, master]  # PR solo a develop/master
+    branches: [develop, master]
   workflow_dispatch:
     inputs:
       RUN_CD:
         description: 'Ejecutar CD (solo develop/master)'
         type: boolean
         default: false
+      DEPLOY_ENV:
+        description: 'Entorno de despliegue (opcional)'
+        type: choice
+        options:
+          - DEV
+          - PRO
+        default: DEV
 
-# Variables de entorno a nivel workflow
 env:
-  IMAGE_NAME: contrerasadr/devops-training-python-app:0.0.1
-  APP_URL: http://localhost:5001/
+  IMAGE_NAME: "contrerasadr/devops-training-python-app:0.0.1"
+  APP_URL: "http://localhost:5001/"
 
 jobs:
   ci:
-    name: CI Job
+    name: CI
     runs-on: ubuntu-latest
-
-    # Variables de entorno a nivel job (sobrescribe workflow)
     env:
-      APP_URL: http://localhost:5002/
-
+      APP_URL: "http://localhost:5002/"  # sobrescribe para ver precedencia
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Info
         run: |
-          echo "Repo: $GITHUB_REPOSITORY"
           echo "Branch: $GITHUB_REF_NAME"
-          echo "SHA: $GITHUB_SHA"
-          echo "Runner OS: $RUNNER_OS"
+          echo "SHA:    $GITHUB_SHA"
+          echo "OS:     $RUNNER_OS"
           echo "Runner: $RUNNER_NAME"
-          echo "IMAGE_NAME = $IMAGE_NAME"
-          echo "APP_URL (job) = $APP_URL"
+
+      - name: Mostrar inputs (Ej4)
+        run: |
+          echo "RUN_CD = ${{ inputs.RUN_CD }}"
+          echo "DEPLOY_ENV = ${{ inputs.DEPLOY_ENV }}"
