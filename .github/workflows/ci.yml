@@ -1,4 +1,4 @@
-name: CI (Ejercicio 1 - Triggers)
+name: CI (Ejercicio 2 - Estructura)
 
 on:
   push:
@@ -16,14 +16,17 @@ on:
         type: boolean
 
 jobs:
-  dummy:
+  ci:
+    name: CI Job
     runs-on: ubuntu-latest
 
     steps:
-      - name: Mostrar contexto
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Info
         run: |
-          echo "Repo:   $GITHUB_REPOSITORY"
-          echo "Ref:    $GITHUB_REF"
-          echo "Branch: $GITHUB_REF_NAME"
-          echo "Event:  $GITHUB_EVENT_NAME"
-          echo "RUN_CD: ${{ github.event.inputs.RUN_CD }}"
+          echo "Branch:  ${{ github.ref_name }}"
+          echo "SHA:     ${{ github.sha }}"
+          echo "OS:      ${{ runner.os }}"
+          echo "Runner:  ${{ runner.name }}"
