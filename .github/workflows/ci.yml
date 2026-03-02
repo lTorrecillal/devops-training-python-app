@@ -32,6 +32,7 @@ jobs:
     # Sobrescribimos APP_URL a nivel de job para ver precedencia
     env:
       APP_URL: "http://localhost:5003/"
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -42,19 +43,36 @@ jobs:
           echo "SHA:    $GITHUB_SHA"
           echo "OS:     $RUNNER_OS"
           echo "Runner: $RUNNER_NAME"
-      
+
       - name: Variables workflow y job
         run: |
           echo "IMAGE_NAME = $IMAGE_NAME"
           echo "APP_URL (job) = $APP_URL"
-      
+
       - name: Inputs workflow_dispatch
         run: |
           echo "RUN_CD = ${{ inputs.RUN_CD }}"
           echo "DEPLOY_ENV = ${{ inputs.DEPLOY_ENV }}"
-      
-      - name: Variables 
+
+      - name: Variables
         run: |
           echo "REGISTRY_HOST = ${{ vars.REGISTRY_HOST }}"
           echo "ARTIFACTORY_URL = ${{ vars.ARTIFACTORY_URL }}"
           echo "Registry user = ${{ secrets.REGISTRY_USER }}"
+
+      ###############################
+      # Ejercicio 6 - CI en contenedor
+      ###############################
+      - name: Instalar dependencias y ejecutar en contenedor
+        container:
+          image: python:3.6-slim
+        run: |
+          pip install --no-cache-dir -r requirements.txt
+          make lint
+          make test
+
+      ###############################
+      # Ejercicio 7 - Build de imagen Docker
+      ###############################
+      - name: Build Docker image
+        run: docker build -t $IMAGE_NAME -f devops/Dockerfile .
