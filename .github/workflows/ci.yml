@@ -1,10 +1,10 @@
-name: CI/CD - Ejercicios 1-7
+name: CI/CD - Ejercicios 1 a 7 Prueba
 
 on:
   push:
-    branches: ['**']              # Ejecuta en push a cualquier rama
+    branches: ['**']        # Ejecuta en push a cualquier rama
   pull_request:
-    branches: [develop, master]   # Ejecuta en PR hacia develop/master
+    branches: [develop, master]  # Ejecuta en PR hacia develop/master
   workflow_dispatch:
     inputs:
       RUN_CD:
@@ -29,14 +29,19 @@ jobs:
     name: CI Job
     runs-on: ubuntu-latest
     environment: ${{ github.ref_name == 'master' && 'PRO' || 'DEV' }}
-    container: python:3.6-slim       # ← TODO Ejercicio 6: job en contenedor
     env:
-      APP_URL: "http://localhost:5003/"   # Sobrescribimos para ver precedencia
+      APP_URL: "http://localhost:5003/"
 
     steps:
+      # -----------------------------------
+      # Ejercicio 1: Checkout
+      # -----------------------------------
       - name: Checkout
         uses: actions/checkout@v4
 
+      # -----------------------------------
+      # Ejercicio 2: Info del runner
+      # -----------------------------------
       - name: Info
         run: |
           echo "Branch: $GITHUB_REF_NAME"
@@ -44,27 +49,45 @@ jobs:
           echo "OS:     $RUNNER_OS"
           echo "Runner: $RUNNER_NAME"
 
+      # -----------------------------------
+      # Ejercicio 3: Variables workflow y job
+      # -----------------------------------
       - name: Variables workflow y job
         run: |
           echo "IMAGE_NAME = $IMAGE_NAME"
           echo "APP_URL (job) = $APP_URL"
 
+      # -----------------------------------
+      # Ejercicio 4: Inputs workflow_dispatch
+      # -----------------------------------
       - name: Inputs workflow_dispatch
         run: |
           echo "RUN_CD = ${{ inputs.RUN_CD }}"
           echo "DEPLOY_ENV = ${{ inputs.DEPLOY_ENV }}"
 
-      - name: Variables y secrets
+      # -----------------------------------
+      # Ejercicio 5: Variables de entorno adicionales
+      # -----------------------------------
+      - name: Variables
         run: |
           echo "REGISTRY_HOST = ${{ vars.REGISTRY_HOST }}"
           echo "ARTIFACTORY_URL = ${{ vars.ARTIFACTORY_URL }}"
           echo "Registry user = ${{ secrets.REGISTRY_USER }}"
 
-      - name: Instalar dependencias y ejecutar tests
+      # -----------------------------------
+      # Ejercicio 6: CI en contenedor python:3.6-slim
+      # -----------------------------------
+      - name: Instalar dependencias y ejecutar tests en python:3.6-slim
+        container:
+          image: python:3.6-slim
         run: |
+          apt-get update && apt-get install -y gcc libpq-dev build-essential
           pip install --no-cache-dir -r requirements.txt
           make lint
           make test
 
+      # -----------------------------------
+      # Ejercicio 7: Build Docker image
+      # -----------------------------------
       - name: Build Docker image
         run: docker build -t $IMAGE_NAME -f devops/Dockerfile .
