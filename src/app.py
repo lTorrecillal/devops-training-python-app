@@ -27,6 +27,8 @@ def favorite_colors() -> List[Dict]:
 
 
 @app.route("/")
+
+
 def index() -> str:
     return json.dumps({"favorite_colors": favorite_colors()})
 
