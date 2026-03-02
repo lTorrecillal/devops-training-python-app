@@ -1,10 +1,10 @@
-name: CI/CD - Ejercicio 5
+name: CI/CD - Ejercicios 1-7
 
 on:
   push:
-    branches: ['**']        # Ejecuta en push a cualquier rama
+    branches: ['**']              # Ejecuta en push a cualquier rama
   pull_request:
-    branches: [develop, master]  # Ejecuta en PR hacia develop/master
+    branches: [develop, master]   # Ejecuta en PR hacia develop/master
   workflow_dispatch:
     inputs:
       RUN_CD:
@@ -29,9 +29,9 @@ jobs:
     name: CI Job
     runs-on: ubuntu-latest
     environment: ${{ github.ref_name == 'master' && 'PRO' || 'DEV' }}
-    # Sobrescribimos APP_URL a nivel de job para ver precedencia
+    container: python:3.6-slim       # ← TODO Ejercicio 6: job en contenedor
     env:
-      APP_URL: "http://localhost:5003/"
+      APP_URL: "http://localhost:5003/"   # Sobrescribimos para ver precedencia
 
     steps:
       - name: Checkout
@@ -54,25 +54,17 @@ jobs:
           echo "RUN_CD = ${{ inputs.RUN_CD }}"
           echo "DEPLOY_ENV = ${{ inputs.DEPLOY_ENV }}"
 
-      - name: Variables
+      - name: Variables y secrets
         run: |
           echo "REGISTRY_HOST = ${{ vars.REGISTRY_HOST }}"
           echo "ARTIFACTORY_URL = ${{ vars.ARTIFACTORY_URL }}"
           echo "Registry user = ${{ secrets.REGISTRY_USER }}"
 
-      ###############################
-      # Ejercicio 6 - CI en contenedor
-      ###############################
-      - name: Instalar dependencias y ejecutar en contenedor
-        container:
-          image: python:3.6-slim
+      - name: Instalar dependencias y ejecutar tests
         run: |
           pip install --no-cache-dir -r requirements.txt
           make lint
           make test
 
-      ###############################
-      # Ejercicio 7 - Build de imagen Docker
-      ###############################
       - name: Build Docker image
         run: docker build -t $IMAGE_NAME -f devops/Dockerfile .
