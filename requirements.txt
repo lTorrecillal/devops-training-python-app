@@ -3,3 +3,4 @@ coverage
 black[jupyter]
 Flask
 psycopg2
+flake8
