@@ -1,10 +1,10 @@
-name: CI Workflow
+name: Ejercicio 1-7 
 
 on:
   push:
-    branches: ['**']        # Ejecuta en push a cualquier rama
+    branches: ['**']
   pull_request:
-    branches: [develop, master]  # Ejecuta en PR hacia develop/master
+    branches: [develop, master]
   workflow_dispatch:
     inputs:
       RUN_CD:
@@ -19,7 +19,6 @@ on:
           - PRO
         default: DEV
 
-# Variables a nivel de workflow
 env:
   IMAGE_NAME: "contrerasadr/devops-training-python-app:0.0.1"
   APP_URL: "http://localhost:5002/"
@@ -29,8 +28,6 @@ jobs:
     name: CI Job
     runs-on: ubuntu-latest
     environment: ${{ github.ref_name == 'master' && 'PRO' || 'DEV' }}
-    env:
-      APP_URL: "http://localhost:5003/"
 
     steps:
       # -----------------------------------
@@ -74,28 +71,22 @@ jobs:
           echo "ARTIFACTORY_URL = ${{ vars.ARTIFACTORY_URL }}"
           echo "Registry user = ${{ secrets.REGISTRY_USER }}"
 
-  python-ci:
-    name: CI Python (Ejercicio 6)
-    runs-on: ubuntu-latest
-    container:                       # <-- container a nivel de job
-      image: python:3.6-slim
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      # -----------------------------------
+      # Ejercicio 6: Python CI en contenedor
+      # -----------------------------------
+      - name: Build CI Docker image
+        run: docker build -t ci-image -f devops/ci.Dockerfile .
 
-      - name: Instalar dependencias y ejecutar tests
+      - name: Run tests and lint inside CI container
         run: |
-          apt-get update && apt-get install -y gcc libpq-dev build-essential
-          pip install --no-cache-dir -r requirements.txt
-          make test
+          docker run --rm -v ${{ github.workspace }}:/app ci-image bash -c "
+            pip install --no-cache-dir -r requirements.txt
+            make lint
+            make test
+          "
 
-  docker-build:
-    name: Build Docker Image
-    runs-on: ubuntu-latest
-    needs: python-ci
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
+      # -----------------------------------
+      # Ejercicio 7: Build Docker image
+      # -----------------------------------
       - name: Build Docker image
         run: docker build -t $IMAGE_NAME -f devops/Dockerfile .
