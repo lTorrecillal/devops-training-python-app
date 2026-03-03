@@ -79,7 +79,6 @@ jobs:
   name: CD Job
   runs-on: ubuntu-latest
   if: (github.ref_name == 'develop' || github.ref_name == 'master') && github.event.inputs.RUN_CD == 'true'
-  environment: ${{ github.ref_name == 'master' && 'PRO' || 'DEV' }}
 
   steps:
     - name: Checkout
