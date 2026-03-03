@@ -1,4 +1,4 @@
-name: CI/CD - Ejercicios 1-7
+name: Ejercicicos 1-7 
 
 on:
   push:
@@ -19,7 +19,6 @@ on:
           - PRO
         default: DEV
 
-# Variables a nivel de workflow
 env:
   IMAGE_NAME: "contrerasadr/devops-training-python-app:0.0.1"
   APP_URL: "http://localhost:5002/"
@@ -29,46 +28,30 @@ jobs:
     name: CI Job
     runs-on: ubuntu-latest
     environment: ${{ github.ref_name == 'master' && 'PRO' || 'DEV' }}
-
     env:
       APP_URL: "http://localhost:5003/"
 
     steps:
-      # -----------------------------------
-      # Ejercicio 1: Checkout
-      # -----------------------------------
       - name: Checkout
         uses: actions/checkout@v4
 
-      # -----------------------------------
-      # Ejercicio 2: Info del runner
-      # -----------------------------------
-      - name: Info
+      - name: Info del runner
         run: |
           echo "Branch: $GITHUB_REF_NAME"
           echo "SHA:    $GITHUB_SHA"
           echo "OS:     $RUNNER_OS"
           echo "Runner: $RUNNER_NAME"
 
-      # -----------------------------------
-      # Ejercicio 3: Variables workflow y job
-      # -----------------------------------
       - name: Variables workflow y job
         run: |
           echo "IMAGE_NAME = $IMAGE_NAME"
           echo "APP_URL (job) = $APP_URL"
 
-      # -----------------------------------
-      # Ejercicio 4: Inputs workflow_dispatch
-      # -----------------------------------
       - name: Inputs workflow_dispatch
         run: |
           echo "RUN_CD = ${{ inputs.RUN_CD }}"
           echo "DEPLOY_ENV = ${{ inputs.DEPLOY_ENV }}"
 
-      # -----------------------------------
-      # Ejercicio 5: Variables adicionales
-      # -----------------------------------
       - name: Variables adicionales
         run: |
           echo "REGISTRY_HOST = ${{ vars.REGISTRY_HOST }}"
@@ -77,16 +60,15 @@ jobs:
 
       # -----------------------------------
       # Ejercicio 6: CI en contenedor python:3.6-slim
+      # Solo ejecuta tests, no lint
       # -----------------------------------
-      - name: Ejecutar CI en python:3.6-slim
+      - name: Ejecutar tests en Python
+        container:
+          image: python:3.6-slim
         run: |
-          docker run --rm -v $PWD:/app -w /app python:3.6-slim bash -c "
-            apt-get update &&
-            apt-get install -y gcc libpq-dev build-essential &&
-            pip install --no-cache-dir -r requirements.txt &&
-            make reformat &&
-            make test
-          "
+          apt-get update && apt-get install -y gcc libpq-dev build-essential
+          pip install --no-cache-dir -r requirements.txt
+          make test
 
       # -----------------------------------
       # Ejercicio 7: Build Docker image
