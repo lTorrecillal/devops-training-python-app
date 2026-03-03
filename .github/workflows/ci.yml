@@ -27,7 +27,7 @@ env:
   APP_URL: "http://localhost:5002/"
 
 jobs:
-  ##### EJERCICIO 1-7: CI #####
+  # EJERCICIO 1-7: CI 
   ci:
     name: CI Job
     runs-on: ubuntu-latest
