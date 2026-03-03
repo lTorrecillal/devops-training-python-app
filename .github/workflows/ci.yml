@@ -74,12 +74,12 @@ jobs:
       - name: Build Docker image
         run: docker build -t $IMAGE_NAME -f devops/Dockerfile .
 
-  # Ejercicio 8: CD por rama 
-  cd:
+    # Ejercicio 8: CD por rama
+    cd:
   name: CD Job
   runs-on: ubuntu-latest
-  needs: ci
-    #if: (github.ref_name == 'develop' || github.ref_name == 'master') && github.event.inputs.RUN_CD == 'true'
+  if: (github.ref_name == 'develop' || github.ref_name == 'master') && github.event.inputs.RUN_CD == 'true'
+  environment: ${{ github.ref_name == 'master' && 'PRO' || 'DEV' }}
 
   steps:
     - name: Checkout
