@@ -75,11 +75,11 @@ jobs:
         run: docker build -t $IMAGE_NAME -f devops/Dockerfile .
 
     # Ejercicio 8: CD por rama
-    cd:
+   deploy:
   name: CD Job
   runs-on: ubuntu-latest
-  if: (github.ref_name == 'develop' || github.ref_name == 'master') && github.event.inputs.RUN_CD == 'true'
-  environment: ${{ github.ref_name == 'master' && 'PRO' || 'DEV' }}
+  if: ${{ (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/master') && github.event.inputs.RUN_CD == 'true' }}
+  environment: ${{ github.ref == 'refs/heads/master' && 'PRO' || 'DEV' }}
 
   steps:
     - name: Checkout
@@ -89,16 +89,16 @@ jobs:
       run: |
         echo "Ejecutando CD"
         echo "Branch: $GITHUB_REF_NAME"
-        echo "RUN_CD = ${{ inputs.RUN_CD }}"
-        echo "DEPLOY_ENV = ${{ inputs.DEPLOY_ENV }}"
+        echo "RUN_CD = ${{ github.event.inputs.RUN_CD }}"
+        echo "DEPLOY_ENV = ${{ github.event.inputs.DEPLOY_ENV }}"
         echo "Registry host = ${{ vars.REGISTRY_HOST }}"
         echo "Registry user = ${{ secrets.REGISTRY_USER }}"
 
     - name: Simular despliegue
       run: |
-        echo "Desplegando aplicación en entorno ${{ inputs.DEPLOY_ENV }}"
-        if [ "${{ inputs.DEPLOY_ENV }}" = "PRO" ]; then
+        echo "Desplegando aplicación en entorno ${{ github.event.inputs.DEPLOY_ENV }}"
+        if [ "${{ github.event.inputs.DEPLOY_ENV }}" = "PRO" ]; then
           echo "Aquí iría la lógica de despliegue PRO"
         else
           echo "Aquí iría la lógica de despliegue DEV"
-        fi
+        fi 
