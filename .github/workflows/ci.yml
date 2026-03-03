@@ -1,10 +1,10 @@
-name: Ejercicicos 1-7 
+name: CI Workflow
 
 on:
   push:
-    branches: ['**']
+    branches: ['**']        # Ejecuta en push a cualquier rama
   pull_request:
-    branches: [develop, master]
+    branches: [develop, master]  # Ejecuta en PR hacia develop/master
   workflow_dispatch:
     inputs:
       RUN_CD:
@@ -19,6 +19,7 @@ on:
           - PRO
         default: DEV
 
+# Variables a nivel de workflow
 env:
   IMAGE_NAME: "contrerasadr/devops-training-python-app:0.0.1"
   APP_URL: "http://localhost:5002/"
@@ -32,46 +33,69 @@ jobs:
       APP_URL: "http://localhost:5003/"
 
     steps:
+      # -----------------------------------
+      # Ejercicio 1: Checkout
+      # -----------------------------------
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Info del runner
+      # -----------------------------------
+      # Ejercicio 2: Info del runner
+      # -----------------------------------
+      - name: Info
         run: |
           echo "Branch: $GITHUB_REF_NAME"
           echo "SHA:    $GITHUB_SHA"
           echo "OS:     $RUNNER_OS"
           echo "Runner: $RUNNER_NAME"
 
+      # -----------------------------------
+      # Ejercicio 3: Variables workflow y job
+      # -----------------------------------
       - name: Variables workflow y job
         run: |
           echo "IMAGE_NAME = $IMAGE_NAME"
           echo "APP_URL (job) = $APP_URL"
 
+      # -----------------------------------
+      # Ejercicio 4: Inputs workflow_dispatch
+      # -----------------------------------
       - name: Inputs workflow_dispatch
         run: |
           echo "RUN_CD = ${{ inputs.RUN_CD }}"
           echo "DEPLOY_ENV = ${{ inputs.DEPLOY_ENV }}"
 
-      - name: Variables adicionales
+      # -----------------------------------
+      # Ejercicio 5: Variables de entorno adicionales
+      # -----------------------------------
+      - name: Variables
         run: |
           echo "REGISTRY_HOST = ${{ vars.REGISTRY_HOST }}"
           echo "ARTIFACTORY_URL = ${{ vars.ARTIFACTORY_URL }}"
           echo "Registry user = ${{ secrets.REGISTRY_USER }}"
 
-      # -----------------------------------
-      # Ejercicio 6: CI en contenedor python:3.6-slim
-      # Solo ejecuta tests, no lint
-      # -----------------------------------
-      - name: Ejecutar tests en Python
-        container:
-          image: python:3.6-slim
+  python-ci:
+    name: CI Python (Ejercicio 6)
+    runs-on: ubuntu-latest
+    container:                       # <-- container a nivel de job
+      image: python:3.6-slim
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Instalar dependencias y ejecutar tests
         run: |
           apt-get update && apt-get install -y gcc libpq-dev build-essential
           pip install --no-cache-dir -r requirements.txt
           make test
 
-      # -----------------------------------
-      # Ejercicio 7: Build Docker image
-      # -----------------------------------
+  docker-build:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+    needs: python-ci
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Build Docker image
         run: docker build -t $IMAGE_NAME -f devops/Dockerfile .
