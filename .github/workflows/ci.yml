@@ -2,9 +2,9 @@ name: CI/CD - Ejercicios 1-7
 
 on:
   push:
-    branches: ['**']        # Ejecuta en push a cualquier rama
+    branches: ['**']
   pull_request:
-    branches: [develop, master]  # Ejecuta en PR hacia develop/master
+    branches: [develop, master]
   workflow_dispatch:
     inputs:
       RUN_CD:
@@ -29,6 +29,7 @@ jobs:
     name: CI Job
     runs-on: ubuntu-latest
     environment: ${{ github.ref_name == 'master' && 'PRO' || 'DEV' }}
+
     env:
       APP_URL: "http://localhost:5003/"
 
@@ -66,9 +67,9 @@ jobs:
           echo "DEPLOY_ENV = ${{ inputs.DEPLOY_ENV }}"
 
       # -----------------------------------
-      # Ejercicio 5: Variables de entorno adicionales
+      # Ejercicio 5: Variables adicionales
       # -----------------------------------
-      - name: Variables
+      - name: Variables adicionales
         run: |
           echo "REGISTRY_HOST = ${{ vars.REGISTRY_HOST }}"
           echo "ARTIFACTORY_URL = ${{ vars.ARTIFACTORY_URL }}"
@@ -77,12 +78,13 @@ jobs:
       # -----------------------------------
       # Ejercicio 6: CI en contenedor python:3.6-slim
       # -----------------------------------
-      - name: Ejecutar tests en contenedor python:3.6-slim
+      - name: Ejecutar CI en python:3.6-slim
         run: |
           docker run --rm -v $PWD:/app -w /app python:3.6-slim bash -c "
-            apt-get update && apt-get install -y gcc libpq-dev build-essential &&
+            apt-get update &&
+            apt-get install -y gcc libpq-dev build-essential &&
             pip install --no-cache-dir -r requirements.txt &&
-            make lint &&
+            make reformat &&
             make test
           "
 
