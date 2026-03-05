@@ -92,10 +92,24 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Simular Deploy
+      # -----------------------------------
+      # Ejercicio 9: Levantar docker compose
+      # -----------------------------------
+      - name: Start services
         run: |
-          echo "===== CD JOB ====="
-          echo "Branch: $GITHUB_REF_NAME"
-          echo "RUN_CD = ${{ github.event.inputs.RUN_CD }}"
-          echo "DEPLOY_ENV = ${{ github.event.inputs.DEPLOY_ENV }}"
-          echo "Desplegando aplicación..."
+          docker compose up -d
+
+      # -----------------------------------
+      # Mostrar logs del contenedor principal
+      # -----------------------------------
+      - name: Show app logs
+        run: |
+          docker compose logs app
+
+      # -----------------------------------
+      # Cleanup SIEMPRE
+      # -----------------------------------
+      - name: Cleanup containers
+        if: always()
+        run: |
+          docker compose down -v
