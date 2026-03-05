@@ -92,6 +92,11 @@ jobs:
       # -----------------------------------
       # Ejercicio 9: Levantar docker compose
       # -----------------------------------
+      # Build imagen para el deploy
+
+      - name: Build image for deploy
+        run: docker build -t $IMAGE_NAME -f devops/Dockerfile . 
+
       - name: Start services
         run: |
           docker compose up -d
