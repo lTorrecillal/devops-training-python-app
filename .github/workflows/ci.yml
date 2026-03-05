@@ -1,5 +1,5 @@
 # -------------------------
-# CI/CD Pipeline Ejercicios 1-8
+# Ejercicio 1-7 con contenedor CI
 # -------------------------
 name: CI/CD Pipeline
 
@@ -27,18 +27,21 @@ env:
   APP_URL: "http://localhost:5002/"
 
 jobs:
-  # EJERCICIO 1-7: CI 
   ci:
     name: CI Job
     runs-on: ubuntu-latest
     environment: ${{ github.ref_name == 'master' && 'PRO' || 'DEV' }}
 
     steps:
+      # -----------------------------------
       # Ejercicio 1: Checkout
+      # -----------------------------------
       - name: Checkout
         uses: actions/checkout@v4
 
+      # -----------------------------------
       # Ejercicio 2-5: Info y variables
+      # -----------------------------------
       - name: Info & Variables
         run: |
           echo "Branch: $GITHUB_REF_NAME"
@@ -52,11 +55,17 @@ jobs:
           echo "REGISTRY_HOST = ${{ vars.REGISTRY_HOST }}"
           echo "ARTIFACTORY_URL = ${{ vars.ARTIFACTORY_URL }}"
           echo "Registry user = ${{ secrets.REGISTRY_USER }}"
-      # Ejercicio 6: Construir imagen CI desde ci.Dockerfile
+
+      # -----------------------------------
+      # Construir imagen CI desde ci.Dockerfile
+      # -----------------------------------
       - name: Build CI image
         run: |
           docker build -t devops/ci:latest -f devops/ci.Dockerfile .
+
+      # -----------------------------------
       # Ejercicio 6: Ejecutar lint y test dentro del contenedor
+      # -----------------------------------
       - name: Run CI in container
         uses: addnab/docker-run-action@v3
         with:
@@ -67,47 +76,9 @@ jobs:
             pip install --no-cache-dir -r requirements.txt
             make lint
             make test
+
+      # -----------------------------------
       # Ejercicio 7: Build Docker image de la app
+      # -----------------------------------
       - name: Build Docker image
         run: docker build -t $IMAGE_NAME -f devops/Dockerfile .
-
-  # -----------------------------------
-  # Ejercicio 8: CD solo en develop/master
-  # -----------------------------------
-  cd:
-    name: CD Job
-    runs-on: ubuntu-latest
-
-    # Solo ejecutar si:
-    # - rama develop o master
-    # - RUN_CD == true (workflow_dispatch)
-    if: ${{ (github.ref_name == 'develop' || github.ref_name == 'master') && github.event.inputs.RUN_CD == 'true' }}
-
-    needs: ci
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      # -----------------------------------
-      # Ejercicio 9: Levantar docker compose
-      # -----------------------------------
-      # Build imagen para el deploy
-      - name: Build image for deploy
-      run: docker build -t $IMAGE_NAME -f devops/Dockerfile .
-      - name: Start services
-        run: |
-          docker compose up -d
-      # -----------------------------------
-      # Mostrar logs del contenedor principal
-      # -----------------------------------
-      - name: Show app logs
-        run: |
-          docker compose logs app
-      # -----------------------------------
-      # Cleanup SIEMPRE
-      # -----------------------------------
-      - name: Cleanup containers
-        if: always()
-        run: |
-          docker compose down -v
