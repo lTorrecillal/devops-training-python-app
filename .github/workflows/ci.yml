@@ -71,7 +71,7 @@ jobs:
       - name: Build Docker image
         run: docker build -t $IMAGE_NAME -f devops/Dockerfile .
 
-          # -----------------------------------
+  # -----------------------------------
   # Ejercicio 8: CD solo en develop/master
   # -----------------------------------
   cd:
@@ -92,18 +92,20 @@ jobs:
       # -----------------------------------
       # Ejercicio 9: Levantar docker compose
       # -----------------------------------
-      # Build imagen para el deploy
       - name: Build image for deploy
-      run: docker build -t $IMAGE_NAME -f devops/Dockerfile .
+        run: docker build -t $IMAGE_NAME -f devops/Dockerfile .
+
       - name: Start services
         run: |
           docker compose up -d
+
       # -----------------------------------
       # Mostrar logs del contenedor principal
       # -----------------------------------
       - name: Show app logs
         run: |
           docker compose logs app
+
       # -----------------------------------
       # Cleanup SIEMPRE
       # -----------------------------------
