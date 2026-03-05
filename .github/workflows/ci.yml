@@ -1,115 +1,31 @@
-# -------------------------
-# CI/CD Pipeline Ejercicios 1-8
-# -------------------------
-name: CI/CD Pipeline
+# -----------------------------------
+# EJERCICIO 8-9: CD
+# -----------------------------------
+cd:
+  name: CD Job
+  runs-on: ubuntu-latest
+  needs: ci
 
-on:
-  push:
-    branches: ['**']
-  pull_request:
-    branches: [develop, master]
-  workflow_dispatch:
-    inputs:
-      RUN_CD:
-        description: 'Ejecutar CD (solo develop/master)'
-        type: boolean
-        default: false
-      DEPLOY_ENV:
-        description: 'Simular entorno (DEV/PRO)'
-        type: choice
-        options:
-          - DEV
-          - PRO
-        default: DEV
+  if: ${{ (github.ref_name == 'develop' || github.ref_name == 'master') && github.event.inputs.RUN_CD == 'true' }}
 
-env:
-  IMAGE_NAME: "contrerasadr/devops-training-python-app:0.0.1"
-  APP_URL: "http://localhost:5002/"
+  steps:
 
-jobs:
-  # EJERCICIO 1-7: CI 
-  ci:
-    name: CI Job
-    runs-on: ubuntu-latest
-    environment: ${{ github.ref_name == 'master' && 'PRO' || 'DEV' }}
+    - name: Checkout
+      uses: actions/checkout@v4
 
-    steps:
-      # Ejercicio 1: Checkout
-      - name: Checkout
-        uses: actions/checkout@v4
+    # Build imagen para el deploy
+    - name: Build image for deploy
+      run: docker build -t $IMAGE_NAME -f devops/Dockerfile .
 
-      # Ejercicio 2-5: Info y variables
-      - name: Info & Variables
-        run: |
-          echo "Branch: $GITHUB_REF_NAME"
-          echo "SHA:    $GITHUB_SHA"
-          echo "OS:     $RUNNER_OS"
-          echo "Runner: $RUNNER_NAME"
-          echo "IMAGE_NAME = $IMAGE_NAME"
-          echo "APP_URL (job) = $APP_URL"
-          echo "RUN_CD = ${{ inputs.RUN_CD }}"
-          echo "DEPLOY_ENV = ${{ inputs.DEPLOY_ENV }}"
-          echo "REGISTRY_HOST = ${{ vars.REGISTRY_HOST }}"
-          echo "ARTIFACTORY_URL = ${{ vars.ARTIFACTORY_URL }}"
-          echo "Registry user = ${{ secrets.REGISTRY_USER }}"
-      # Ejercicio 6: Construir imagen CI desde ci.Dockerfile
-      - name: Build CI image
-        run: |
-          docker build -t devops/ci:latest -f devops/ci.Dockerfile .
-      # Ejercicio 6: Ejecutar lint y test dentro del contenedor
-      - name: Run CI in container
-        uses: addnab/docker-run-action@v3
-        with:
-          image: devops/ci:latest
-          options: -v ${{ github.workspace }}:/app
-          run: |
-            cd /app
-            pip install --no-cache-dir -r requirements.txt
-            make lint
-            make test
-      # Ejercicio 7: Build Docker image de la app
-      - name: Build Docker image
-        run: docker build -t $IMAGE_NAME -f devops/Dockerfile .
+    # Deploy
+    - name: Deploy with docker compose
+      run: docker compose up -d
 
-  # 
-  # Ejercicio 8: CD solo en develop/master
-  #
-  cd:
-    name: CD Job
-    runs-on: ubuntu-latest
+    # Mostrar logs
+    - name: Show logs
+      run: docker compose logs app
 
-    # Solo ejecutar si:
-    # - rama develop o master
-    # - RUN_CD == true (workflow_dispatch)
-    if: ${{ (github.ref_name == 'develop' || github.ref_name == 'master') && github.event.inputs.RUN_CD == 'true' }}
-
-    needs: ci
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      # -----------------------------------
-      # Ejercicio 9: Levantar docker compose
-      # -----------------------------------
-      # Build imagen para el deploy
-
-      - name: Build image for deploy
-        run: docker build -t $IMAGE_NAME -f devops/Dockerfile . 
-
-      - name: Start services
-        run: |
-          docker compose up -d
-      # -----------------------------------
-      # Mostrar logs del contenedor principal
-      # -----------------------------------
-      - name: Show app logs
-        run: |
-          docker compose logs app
-      # -----------------------------------
-      # Cleanup SIEMPRE
-      # -----------------------------------
-      - name: Cleanup containers
-        if: always()
-        run: |
-          docker compose down -v
+    # Cleanup SIEMPRE
+    - name: Cleanup
+      if: always()
+      run: docker compose down -v
